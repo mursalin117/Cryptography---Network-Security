@@ -1,9 +1,11 @@
 import java.math.BigInteger;
+import java.security.SecureRandom;
 import java.util.Random;
 
 public class Main {
-
+    
     public static boolean isPrime(BigInteger n, int iterations) {
+
         // checking
         if (n.equals(BigInteger.TWO) || n.equals(BigInteger.valueOf(3))) {
             return true;
@@ -14,16 +16,44 @@ public class Main {
         }
         // Run the Lehman primality test for the specified number of iterations
         for (int i = 0; i < iterations; i++) {
+
+            // factoring n by 2
+            int b = 0;
+            BigInteger temp = n.subtract(BigInteger.ONE);
+            while (temp.mod(BigInteger.TWO).equals(BigInteger.ZERO)) {
+                temp = temp.divide(BigInteger.TWO);
+                b++;
+            }
+            BigInteger m = temp;
+
+            // take a less than p
             // Generate a random number a in the range [2, n-1]
             BigInteger a = randomInRange(BigInteger.TWO, n.subtract(BigInteger.ONE));
-            // Calculate a^(n-1)/2 mod n
-            BigInteger power = a.modPow(n.subtract(BigInteger.ONE).divide(BigInteger.TWO), n);
-            // If the result is not 1 or n-1, then n is composite
-            if (!power.equals(BigInteger.ONE) && !power.equals(n.subtract(BigInteger.ONE))) {
+
+            int j = 0;
+            BigInteger z = a.modPow(m, n);
+            if (z.equals(BigInteger.ONE) || z.equals(n.subtract(BigInteger.ONE))) {
+                return true;
+            }
+
+            while (true) {
+                if (j > 0 && z.equals(BigInteger.ONE)) {
+                    return false;
+                }
+                j++;
+                if (j < b && !z.equals(n.subtract(BigInteger.ONE))) {
+                    z = z.modPow(BigInteger.TWO, n);
+                } 
+                else {
+                    // if j == b (break) or z = n-1 (break and prime) 
+                    break; 
+                }
+            }
+            if (j == b && !z.equals(n.subtract(BigInteger.ONE))) {
                 return false;
             }
         }
-        // If all iterations pass, n is likely prime
+
         return true;
     }
 
@@ -45,5 +75,5 @@ public class Main {
         int iterations = 10;
         boolean prime = isPrime(n, iterations);
         System.out.println(n + " is prime: " + prime);
-    }    
+    }
 }
